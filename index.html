@@ -360,11 +360,61 @@
 
   /* ─── RESPONSIVE ─── */
   @media (max-width: 700px) {
-    .plant-hero, .herb-intro { grid-template-columns: 1fr; }
-    .plant-hero-left, .herb-intro-left { position: static; }
-    .hero-content { padding: 0 1.5rem; }
+    /* Nav */
+    nav { padding: 0 1rem; }
     .nav-links { display: none; }
+
+    /* Hero */
+    .hero { padding: 0 0 3.5rem; }
+    .hero-content { padding: 0 1.25rem; }
+    .hero-art { display: none; }
+    .hero-desc { font-size: 14px; }
+    .hero-pill { font-size: 12px; padding: 7px 14px; }
+
+    /* Sections */
+    section { padding: 3rem 1.25rem; }
+
+    /* Plant hero layout */
+    .plant-hero { grid-template-columns: 1fr; gap: 2rem; }
+    .plant-hero-left { position: static; }
+    .plant-name { font-size: clamp(32px, 10vw, 48px); }
+
+    /* Stat row */
+    .stat-item { flex-direction: column; align-items: flex-start; gap: 2px; }
+    .stat-val { text-align: left; max-width: 100%; }
+
+    /* Fert highlight */
+    .fert-highlight-top { flex-wrap: wrap; gap: 8px; }
+
+    /* Herb intro */
+    .herb-intro { grid-template-columns: 1fr; gap: 2rem; }
+    .herb-intro-left { position: static; }
     .herb-mini-grid { grid-template-columns: repeat(2, 1fr); }
+
+    /* Harvest table — make it scrollable horizontally */
+    .harvest-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .harvest-table { min-width: 520px; }
+    .harvest-table th, .harvest-table td { padding: 10px 12px; }
+
+    /* Tips grid */
+    .tips-grid { grid-template-columns: 1fr; }
+
+    /* Care grid */
+    .care-grid { grid-template-columns: 1fr; }
+
+    /* Tracker grid (inline style override) */
+    #tracker-grid { grid-template-columns: 1fr !important; }
+
+    /* Footer */
+    footer { padding: 2rem 1.25rem; }
+
+    /* Section header */
+    .section-header { margin-bottom: 2rem; }
+  }
+
+  @media (max-width: 400px) {
+    .herb-mini-grid { grid-template-columns: 1fr; }
+    .hero-plant-nav { gap: 8px; }
   }
 </style>
 </head>
@@ -13247,30 +13297,12 @@ const PLANTS = [
     section: "Fort Collins"
   },
   {
-    id: "herb-basils",
-    name: "Basils & Shiso",
+    id: "herb-pot",
+    name: "Cocktail Herb Pot",
     emoji: "🌿",
     intervalDays: 2,
-    note: "Check daily in Denver summer — may need water every 1–2 days",
+    note: "Check daily — basils & creeper want consistent moisture; thyme tolerates drying slightly",
     color: "#a8d870",
-    section: "Herb Pot · Denver"
-  },
-  {
-    id: "herb-thyme",
-    name: "Lemon Thyme",
-    emoji: "🌿",
-    intervalDays: 4,
-    note: "More drought tolerant — let it dry out a bit more than basil",
-    color: "#c8e890",
-    section: "Herb Pot · Denver"
-  },
-  {
-    id: "herb-creeper",
-    name: "Blue Star Creeper",
-    emoji: "💠",
-    intervalDays: 2,
-    note: "Keep consistently moist — don't let fully dry out",
-    color: "#78b8e8",
     section: "Herb Pot · Denver"
   }
 ];
