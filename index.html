@@ -13373,7 +13373,7 @@ JL6rfInNFJCy8Ng548uTnH6UAf/Z" alt="Herb pot" style="width:100%;display:block;obj
         "?latitude=39.7392&longitude=-104.9903" +
         "&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,uv_index" +
         "&hourly=temperature_2m,precipitation_probability,weather_code" +
-        "&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Highlands Ranch" +
+        "&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FDenver" +
         "&forecast_days=2"
       );
       if (!res.ok) throw new Error("fetch failed");
@@ -13406,7 +13406,7 @@ JL6rfInNFJCy8Ng548uTnH6UAf/Z" alt="Herb pot" style="width:100%;display:block;obj
 
     const forecastHTML = forecastBar(data.hourly);
 
-    const updatedAt = new Date(c.time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short', timeZone: 'America/Highlands Ranch' });
+    const updatedAt = new Date(c.time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short', timeZone: 'America/Denver' });
 
     el.innerHTML = `
       <div style="display:grid;grid-template-columns:auto 1fr;gap:2rem;align-items:start;margin-bottom:1.5rem;">
