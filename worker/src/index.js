@@ -63,6 +63,47 @@ export default {
       }
     }
 
+    // GET /watering — return all plant watering timestamps
+    if (request.method === "GET" && url.pathname === "/watering") {
+      try {
+        const val = await env.PUSH_SUBS.get("watering:state");
+        const state = val ? JSON.parse(val) : {};
+        return new Response(JSON.stringify(state), {
+          status: 200,
+          headers: { ...cors, "Content-Type": "application/json" },
+        });
+      } catch (e) {
+        return new Response("Error: " + e.message, { status: 500, headers: cors });
+      }
+    }
+
+    // POST /watering — save a plant's last-watered timestamp { id, ts }
+    if (request.method === "POST" && url.pathname === "/watering") {
+      try {
+        const { id, ts } = await request.json();
+        if (!id || typeof ts !== "number") {
+          return new Response("Invalid body", { status: 400, headers: cors });
+        }
+        const val = await env.PUSH_SUBS.get("watering:state");
+        const state = val ? JSON.parse(val) : {};
+        state[id] = ts;
+        await env.PUSH_SUBS.put("watering:state", JSON.stringify(state));
+        return new Response("OK", { status: 200, headers: cors });
+      } catch (e) {
+        return new Response("Error: " + e.message, { status: 500, headers: cors });
+      }
+    }
+
+    // POST /watering/reset — clear all watering history
+    if (request.method === "POST" && url.pathname === "/watering/reset") {
+      try {
+        await env.PUSH_SUBS.put("watering:state", JSON.stringify({}));
+        return new Response("OK", { status: 200, headers: cors });
+      } catch (e) {
+        return new Response("Error: " + e.message, { status: 500, headers: cors });
+      }
+    }
+
     // GET /trigger — manual test trigger (only from allowed origins)
     if (request.method === "GET" && url.pathname === "/trigger") {
       ctx.waitUntil(runWeatherCheck(env));
