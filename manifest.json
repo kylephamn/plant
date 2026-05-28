@@ -1,0 +1,26 @@
+{
+    "name": "Plant Care Guide",
+    "short_name": "Plant Care",
+    "description": "Care guide and watering tracker for Jasmine, Calamansi, and Herb Pot",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0f1a0e",
+    "theme_color": "#0f1a0e",
+    "orientation": "portrait",
+    "icons": [
+      {
+        "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%230f1a0e'/><text y='130' x='30' font-size='120'>🌿</text></svg>",
+        "sizes": "192x192",
+        "type": "image/svg+xml",
+        "purpose": "any maskable"
+      }
+    ],
+    "categories": ["lifestyle", "utilities"],
+    "shortcuts": [
+      {
+        "name": "Watering Tracker",
+        "url": "/#tracker",
+        "description": "Check watering status"
+      }
+    ]
+  }
