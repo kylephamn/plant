@@ -1,0 +1,13 @@
+name = "plant-weather-alerts"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "PUSH_SUBS"
+id = "fb0fb4f3397146c18375b2909827b9cc"
+
+[vars]
+VAPID_SUBJECT = "mailto:deathrhino150@gmail.com"
+
+[triggers]
+crons = ["0 13 * * *", "0 14 * * *"]
