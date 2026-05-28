@@ -73,6 +73,42 @@
   }
   .nav-links a:hover { color: var(--mint); }
 
+  .nav-hamburger {
+    display: none;
+    flex-direction: column; justify-content: center; gap: 5px;
+    width: 36px; height: 36px; padding: 6px;
+    background: none; border: none; cursor: pointer;
+  }
+  .nav-hamburger span {
+    display: block; width: 20px; height: 1.5px;
+    background: rgba(255,255,255,0.7); border-radius: 2px;
+    transition: transform 0.25s, opacity 0.25s;
+    transform-origin: center;
+  }
+  .nav-hamburger[aria-expanded="true"] span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+  .nav-hamburger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+  .nav-hamburger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+  .nav-drawer {
+    display: none;
+    position: fixed; top: 56px; left: 0; right: 0; z-index: 99;
+    background: rgba(15,26,14,0.97);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 1rem 1.25rem 1.25rem;
+    flex-direction: column; gap: 0;
+  }
+  .nav-drawer.open { display: flex; }
+  .nav-drawer a {
+    font-size: 13px; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; color: rgba(255,255,255,0.6);
+    text-decoration: none; padding: 14px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    transition: color 0.2s;
+  }
+  .nav-drawer a:last-child { border-bottom: none; }
+  .nav-drawer a:hover { color: var(--mint); }
+
   /* ─── HERO ─── */
   .hero {
     min-height: 100vh;
@@ -363,6 +399,7 @@
     /* Nav */
     nav { padding: 0 1rem; }
     .nav-links { display: none; }
+    .nav-hamburger { display: flex; }
 
     /* Hero */
     .hero { padding: 0 0 3.5rem; }
@@ -427,9 +464,34 @@
     <a href="#jasmine">Jasmine</a>
     <a href="#calamansi">Calamansi</a>
     <a href="#herbs">Herb Pot</a>
-    <a href="#tracker">Tracker</a><a href="#harvest">Harvest</a>
+    <a href="#tracker">Tracker</a>
+    <a href="#harvest">Harvest</a>
   </div>
+  <button class="nav-hamburger" aria-label="Open menu" aria-expanded="false" onclick="toggleNav(this)">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+<div class="nav-drawer" id="nav-drawer">
+  <a href="#jasmine" onclick="closeNav()">Jasmine</a>
+  <a href="#calamansi" onclick="closeNav()">Calamansi</a>
+  <a href="#herbs" onclick="closeNav()">Herb Pot</a>
+  <a href="#tracker" onclick="closeNav()">Tracker</a>
+  <a href="#harvest" onclick="closeNav()">Harvest</a>
+</div>
+<script>
+function toggleNav(btn) {
+  const drawer = document.getElementById('nav-drawer');
+  const open = drawer.classList.toggle('open');
+  btn.setAttribute('aria-expanded', open);
+  btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+}
+function closeNav() {
+  const drawer = document.getElementById('nav-drawer');
+  drawer.classList.remove('open');
+  document.querySelector('.nav-hamburger').setAttribute('aria-expanded', 'false');
+  document.querySelector('.nav-hamburger').setAttribute('aria-label', 'Open menu');
+}
+</script>
 
 <!-- HERO -->
 <div class="hero">
