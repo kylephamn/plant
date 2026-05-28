@@ -464,6 +464,7 @@
     <a href="#jasmine">Jasmine</a>
     <a href="#calamansi">Calamansi</a>
     <a href="#herbs">Herb Pot</a>
+    <a href="#weather">Weather</a>
     <a href="#tracker">Tracker</a>
     <a href="#outdoor-tracker">Outside</a>
     <a href="#harvest">Harvest</a>
@@ -476,6 +477,7 @@
   <a href="#jasmine" onclick="closeNav()">Jasmine</a>
   <a href="#calamansi" onclick="closeNav()">Calamansi</a>
   <a href="#herbs" onclick="closeNav()">Herb Pot</a>
+  <a href="#weather" onclick="closeNav()">Weather</a>
   <a href="#tracker" onclick="closeNav()">Tracker</a>
   <a href="#outdoor-tracker" onclick="closeNav()">Outside</a>
   <a href="#harvest" onclick="closeNav()">Harvest</a>
@@ -13279,6 +13281,186 @@ JL6rfInNFJCy8Ng548uTnH6UAf/Z" alt="Herb pot" style="width:100%;display:block;obj
     </div>
   </div>
 </section>
+
+<!-- ═══════════════ WEATHER WIDGET ═══════════════ -->
+<section id="weather" style="background: var(--night); border-top: 1px solid rgba(255,255,255,0.06);">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-eyebrow" style="color:var(--fern);">Denver · Live conditions</div>
+      <h2 class="section-title" style="color:var(--mint);">Today's <em style="color:var(--gold);">Weather</em></h2>
+    </div>
+    <div id="weather-content">
+      <div style="color:rgba(255,255,255,0.3);font-size:13px;font-weight:300;">Loading weather…</div>
+    </div>
+  </div>
+</section>
+
+<script>
+(async function initWeather() {
+  const WMO_LABEL = {
+    0:"Clear sky",1:"Mainly clear",2:"Partly cloudy",3:"Overcast",
+    45:"Fog",48:"Icy fog",
+    51:"Light drizzle",53:"Drizzle",55:"Heavy drizzle",
+    61:"Light rain",63:"Rain",65:"Heavy rain",
+    71:"Light snow",73:"Snow",75:"Heavy snow",77:"Snow grains",
+    80:"Rain showers",81:"Rain showers",82:"Heavy rain showers",
+    85:"Snow showers",86:"Heavy snow showers",
+    95:"Thunderstorm",96:"Thunderstorm + hail",99:"Thunderstorm + heavy hail",
+  };
+
+  function wmoEmoji(code) {
+    if (code === 0 || code === 1) return "☀️";
+    if (code === 2) return "⛅";
+    if (code === 3) return "☁️";
+    if (code <= 48) return "🌫️";
+    if (code <= 55) return "🌦️";
+    if (code <= 65) return "🌧️";
+    if (code <= 77) return "🌨️";
+    if (code <= 82) return "🌧️";
+    if (code <= 86) return "🌨️";
+    return "⛈️";
+  }
+
+  function plantSafety(tempF, precipMm, windGustMph, weatherCode) {
+    const alerts = [];
+    if (tempF < 45) alerts.push({ level: "danger", text: `${Math.round(tempF)}°F — bring all outdoor plants inside` });
+    else if (tempF < 55) alerts.push({ level: "warn", text: `${Math.round(tempF)}°F — Calamansi should come inside (min 55°F)` });
+    if (windGustMph > 35) alerts.push({ level: "warn", text: `Gusts to ${Math.round(windGustMph)} mph — secure or bring in pots` });
+    if (precipMm > 0.1 || weatherCode >= 61) {
+      const label = weatherCode >= 96 ? "hail" : weatherCode >= 95 ? "thunderstorm" : "rain";
+      alerts.push({ level: "warn", text: `${label.charAt(0).toUpperCase()+label.slice(1)} — bring the herb pot under cover` });
+    }
+    if (alerts.length === 0) alerts.push({ level: "ok", text: "Safe for outdoor plants" });
+    return alerts;
+  }
+
+  function forecastBar(hourly) {
+    // Pick next 12 hours in 2-hour steps
+    const now = new Date();
+    const slots = [];
+    for (let i = 0; i < hourly.time.length && slots.length < 12; i++) {
+      const t = new Date(hourly.time[i]);
+      if (t < now) continue;
+      slots.push({
+        hour: t.getHours(),
+        tempF: hourly.temperature_2m[i],
+        precip: hourly.precipitation_probability[i],
+        code: hourly.weather_code[i],
+      });
+    }
+
+    return slots.map(s => {
+      const h = s.hour === 0 ? "12a" : s.hour < 12 ? `${s.hour}a` : s.hour === 12 ? "12p" : `${s.hour-12}p`;
+      const rainColor = s.precip > 60 ? "#5aaaf0" : s.precip > 30 ? "#7fc0f4" : "rgba(255,255,255,0.15)";
+      return `
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:44px;">
+          <div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.04em;">${h}</div>
+          <div style="font-size:16px;">${wmoEmoji(s.code)}</div>
+          <div style="font-size:12px;font-weight:500;color:rgba(255,255,255,0.8);">${Math.round(s.tempF)}°</div>
+          <div style="font-size:10px;color:${rainColor};">${s.precip}%</div>
+        </div>`;
+    }).join('');
+  }
+
+  async function loadWeather() {
+    const el = document.getElementById('weather-content');
+    if (!el) return;
+
+    let data;
+    try {
+      const res = await fetch(
+        "https://api.open-meteo.com/v1/forecast" +
+        "?latitude=39.7392&longitude=-104.9903" +
+        "&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,uv_index" +
+        "&hourly=temperature_2m,precipitation_probability,weather_code" +
+        "&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Denver" +
+        "&forecast_days=2"
+      );
+      if (!res.ok) throw new Error("fetch failed");
+      data = await res.json();
+    } catch(e) {
+      el.innerHTML = `<div style="color:rgba(255,255,255,0.35);font-size:13px;">Could not load weather data.</div>`;
+      return;
+    }
+
+    const c = data.current;
+    const tempF = c.temperature_2m;
+    const feelsF = c.apparent_temperature;
+    const humidity = c.relative_humidity_2m;
+    const precipMm = c.precipitation;
+    const code = c.weather_code;
+    const windMph = c.wind_speed_10m;
+    const gustMph = c.wind_gusts_10m;
+    const uv = c.uv_index;
+    const label = WMO_LABEL[code] || "Unknown";
+    const emoji = wmoEmoji(code);
+    const alerts = plantSafety(tempF, precipMm, gustMph, code);
+    const alertColor = { danger: "#e88a6a", warn: "#f0c060", ok: "#7faa6e" };
+
+    const alertHTML = alerts.map(a =>
+      `<div style="display:flex;align-items:flex-start;gap:8px;padding:9px 12px;border-radius:9px;background:${alertColor[a.level]}18;border:1px solid ${alertColor[a.level]}44;">
+        <span style="font-size:13px;">${a.level==='ok'?'✅':a.level==='danger'?'🚨':'⚠️'}</span>
+        <span style="font-size:13px;color:${alertColor[a.level]};font-weight:400;line-height:1.4;">${a.text}</span>
+      </div>`
+    ).join('');
+
+    const forecastHTML = forecastBar(data.hourly);
+
+    const updatedAt = new Date(c.time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short', timeZone: 'America/Denver' });
+
+    el.innerHTML = `
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:2rem;align-items:start;margin-bottom:1.5rem;">
+        <!-- Big temp + condition -->
+        <div style="text-align:center;padding:1.5rem 2rem;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;min-width:140px;">
+          <div style="font-size:44px;line-height:1;">${emoji}</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:300;color:#fff;line-height:1;margin-top:6px;">${Math.round(tempF)}°</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.45);margin-top:4px;">Feels ${Math.round(feelsF)}°</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:6px;font-weight:400;">${label}</div>
+        </div>
+        <!-- Stats grid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;">
+            <div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;">Humidity</div>
+            <div style="font-size:22px;font-weight:500;color:rgba(255,255,255,0.85);">${humidity}<span style="font-size:13px;font-weight:300;">%</span></div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;">
+            <div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;">Wind</div>
+            <div style="font-size:22px;font-weight:500;color:rgba(255,255,255,0.85);">${Math.round(windMph)}<span style="font-size:13px;font-weight:300;"> mph</span></div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:2px;">gusts ${Math.round(gustMph)} mph</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;">
+            <div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;">UV Index</div>
+            <div style="font-size:22px;font-weight:500;color:rgba(255,255,255,0.85);">${Math.round(uv)}</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;">
+            <div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;">Precip</div>
+            <div style="font-size:22px;font-weight:500;color:rgba(255,255,255,0.85);">${precipMm.toFixed(1)}<span style="font-size:13px;font-weight:300;"> mm</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Plant safety alerts -->
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem;">
+        ${alertHTML}
+      </div>
+
+      <!-- Hourly forecast strip -->
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:16px 18px;margin-bottom:1rem;">
+        <div style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:14px;">Next 12 hours · rain chance</div>
+        <div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;">
+          ${forecastHTML}
+        </div>
+      </div>
+
+      <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">Updated ${updatedAt} · Open-Meteo</div>
+    `;
+  }
+
+  await loadWeather();
+  // Refresh every 30 minutes
+  setInterval(loadWeather, 30 * 60 * 1000);
+})();
+</script>
 
 <!-- ═══════════════ SHARED TIPS ═══════════════ -->
 <section style="background: var(--forest); border-top: 1px solid rgba(255,255,255,0.06);">
