@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kyle's Plant Care</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night: #0f1a0e;
+    --deep: #162214;
+    --forest: #1e3320;
+    --moss: #2e4d2a;
+    --sage: #5a7d4f;
+    --fern: #7faa6e;
+    --mint: #b8d4a8;
+    --mist: #e4eed8;
+    --cream: #f7f3ec;
+    --parchment: #ede7d8;
+    --gold: #d4a44c;
+    --pale-gold: #f5ecd4;
+    --amber: #c47c28;
+    --terracotta: #b55a3a;
+    --blush: #f2e0d8;
+    --violet: #6b4c8a;
+    --lavender: #ede0f8;
+    --sky: #3a6d9a;
+    --ice: #dceef8;
+    --text: #1a1a14;
+    --muted: #6a6858;
+    --border: #d8d2c4;
+    --white: #ffffff;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(15,26,14,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px;
+  }
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px; font-weight: 400; letter-spacing: 0.06em;
+    color: var(--mint); text-decoration: none;
+  }
+  .nav-logo span { color: var(--gold); font-style: italic; }
+  .nav-links { display: flex; gap: 2rem; }
+  .nav-links a {
+    font-size: 12px; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; color: rgba(255,255,255,0.55);
+    text-decoration: none; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--mint); }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    background: var(--night);
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 0 0 5rem;
+    position: relative; overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 70% 40%, rgba(46,77,42,0.5) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 80% at 20% 80%, rgba(30,51,32,0.6) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 90% 10%, rgba(212,164,76,0.12) 0%, transparent 60%);
+  }
+  /* Botanical line art via CSS */
+  .hero-art {
+    position: absolute; right: -60px; top: 80px;
+    width: 520px; height: 520px; opacity: 0.12;
+  }
+  .hero-content {
+    position: relative; max-width: 900px;
+    padding: 0 3rem;
+  }
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 500; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--gold);
+    margin-bottom: 1.2rem;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .hero-eyebrow::after { content: ''; flex: 0 0 40px; height: 1px; background: var(--gold); opacity: 0.6; }
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(52px, 8vw, 96px);
+    font-weight: 300; line-height: 0.92;
+    color: var(--white); letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+  }
+  .hero-title em { color: var(--fern); font-style: italic; }
+  .hero-desc {
+    font-size: 15px; font-weight: 300; line-height: 1.7;
+    color: rgba(255,255,255,0.5); max-width: 480px;
+    margin-bottom: 2.5rem;
+  }
+  .hero-plant-nav {
+    display: flex; flex-wrap: wrap; gap: 10px;
+  }
+  .hero-pill {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 18px; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.7); font-size: 13px;
+    text-decoration: none; transition: all 0.2s;
+    backdrop-filter: blur(4px);
+  }
+  .hero-pill:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.3); color: #fff; }
+  .hero-pill .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* ─── SECTIONS ─── */
+  section { padding: 5rem 2rem; }
+  .section-inner { max-width: 960px; margin: 0 auto; }
+
+  .section-header { margin-bottom: 3rem; }
+  .section-eyebrow {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--sage);
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 0.8rem;
+  }
+  .section-eyebrow::before { content: ''; width: 28px; height: 1px; background: var(--sage); }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 400; line-height: 1.1;
+    color: var(--forest);
+  }
+  .section-title em { color: var(--gold); font-style: italic; }
+
+  /* ─── DARK SECTION ─── */
+  .dark-section {
+    background: var(--deep);
+    color: var(--white);
+  }
+  .dark-section .section-title { color: var(--mint); }
+  .dark-section .section-eyebrow { color: var(--fern); }
+  .dark-section .section-eyebrow::before { background: var(--fern); }
+
+  /* ─── CARE CARDS ─── */
+  .care-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .care-card {
+    background: var(--white); border-radius: 14px;
+    border: 1px solid var(--border);
+    padding: 22px 24px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .care-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.08); }
+  .care-card-icon { font-size: 22px; margin-bottom: 10px; }
+  .care-card-label { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .care-card-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--forest); margin-bottom: 6px; }
+  .care-card-text { font-size: 13px; font-weight: 300; line-height: 1.7; color: var(--text); }
+
+  /* Dark care cards */
+  .dark-section .care-card { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+  .dark-section .care-card:hover { background: rgba(255,255,255,0.08); }
+  .dark-section .care-card-title { color: var(--mint); }
+  .dark-section .care-card-text { color: rgba(255,255,255,0.65); }
+
+  /* ─── PLANT HERO SECTIONS ─── */
+  .plant-hero {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start;
+  }
+  .plant-hero-left { position: sticky; top: 80px; }
+  .plant-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.08em;
+    margin-bottom: 1.2rem;
+  }
+  .plant-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 300; line-height: 1.0;
+    margin-bottom: 0.5rem;
+  }
+  .plant-latin { font-size: 14px; font-style: italic; font-weight: 300; color: var(--muted); margin-bottom: 1.5rem; }
+  .plant-desc { font-size: 14px; font-weight: 300; line-height: 1.8; color: var(--muted); margin-bottom: 2rem; }
+
+  /* Stat row */
+  .stat-row { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--white); }
+  .stat-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .stat-item:last-child { border-bottom: none; }
+  .stat-key { font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: 0.04em; }
+  .stat-val { font-size: 13px; font-weight: 400; color: var(--text); text-align: right; max-width: 55%; line-height: 1.4; }
+
+  /* Fertilizer highlight */
+  .fert-highlight {
+    border-radius: 12px; padding: 18px 20px;
+    background: var(--pale-gold);
+    border: 1px solid #e0c070;
+    margin-top: 1.5rem;
+  }
+  .fert-highlight-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .fert-highlight-name { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--forest); }
+  .npk-badge { padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--forest); color: var(--mint); }
+  .fert-rows { display: flex; flex-direction: column; gap: 0; }
+  .fert-r { display: flex; justify-content: space-between; font-size: 12px; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.08); }
+  .fert-r:last-child { border-bottom: none; }
+  .fk { color: var(--muted); }
+  .fv { font-weight: 500; color: var(--text); text-align: right; }
+
+  /* Right side detail cards */
+  .detail-stack { display: flex; flex-direction: column; gap: 12px; }
+  .detail-card {
+    background: var(--white); border-radius: 12px;
+    border: 1px solid var(--border); overflow: hidden;
+  }
+  .detail-card-header {
+    padding: 12px 16px; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    background: var(--mist); color: var(--forest);
+    border-bottom: 1px solid var(--border);
+  }
+  .detail-card-body { padding: 14px 16px; }
+  .detail-row { font-size: 13px; font-weight: 300; line-height: 1.7; padding: 3px 0; border-bottom: 1px solid #f0ede5; color: var(--text); }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-row strong { font-weight: 500; }
+
+  /* Tags */
+  .tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px 16px; }
+  .tag { padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 500; }
+  .tag-green { background: var(--mist); color: var(--forest); }
+  .tag-gold { background: var(--pale-gold); color: #6a3e00; }
+  .tag-red { background: #faeae0; color: #7a2a10; }
+  .tag-blue { background: var(--ice); color: #1a3d6a; }
+  .tag-violet { background: var(--lavender); color: #3d1a60; }
+
+  /* ─── HERB POT SECTION ─── */
+  .herb-intro {
+    display: grid; grid-template-columns: 1fr 1.6fr; gap: 3rem;
+    align-items: start; margin-bottom: 3rem;
+  }
+  .herb-intro-left { position: sticky; top: 80px; }
+  .pot-visual {
+    width: 100%; aspect-ratio: 1;
+    background: var(--deep);
+    border-radius: 20px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .pot-contents {
+    display: flex; flex-direction: column; gap: 8px; padding: 2rem;
+    width: 100%;
+  }
+  .pot-plant-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; border-radius: 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    font-size: 13px; color: rgba(255,255,255,0.8);
+    font-weight: 300;
+  }
+  .pot-plant-row .ppr-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .pot-plant-row .ppr-role { font-size: 10px; color: rgba(255,255,255,0.4); margin-left: auto; letter-spacing: 0.06em; }
+
+  /* Herb cards */
+  .herb-cards { display: flex; flex-direction: column; gap: 12px; }
+  .herb-card { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); }
+  .herb-card-header {
+    padding: 14px 18px; display: flex; align-items: center;
+    justify-content: space-between;
+  }
+  .herb-card-header-left { display: flex; align-items: center; gap: 10px; }
+  .herb-emoji { font-size: 20px; }
+  .herb-name { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 400; }
+  .herb-sub { font-size: 11px; font-weight: 300; opacity: 0.7; margin-top: 1px; }
+  .herb-role-badge { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; padding: 3px 10px; border-radius: 999px; background: rgba(0,0,0,0.12); }
+  .herb-card-body { background: var(--white); padding: 14px 18px; }
+  .herb-mini-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+  .herb-mini { background: var(--cream); border-radius: 8px; padding: 8px 10px; }
+  .hm-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 500; margin-bottom: 2px; }
+  .hm-val { font-size: 12px; font-weight: 400; line-height: 1.4; }
+  .herb-tips { font-size: 13px; font-weight: 300; line-height: 1.7; color: var(--muted); }
+  .herb-use-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+
+  /* ─── SHARED TIPS BANNER ─── */
+  .tips-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .tip-card {
+    background: rgba(255,255,255,0.06); border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.1); padding: 18px 20px;
+    transition: background 0.2s;
+  }
+  .tip-card:hover { background: rgba(255,255,255,0.09); }
+  .tip-icon { font-size: 24px; margin-bottom: 10px; }
+  .tip-label { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fern); margin-bottom: 6px; }
+  .tip-text { font-size: 13px; font-weight: 300; line-height: 1.7; color: rgba(255,255,255,0.6); }
+
+  /* ─── HARVEST TABLE ─── */
+  .harvest-wrap { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); }
+  .harvest-table { width: 100%; border-collapse: collapse; }
+  .harvest-table th {
+    padding: 10px 16px; text-align: left;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--forest);
+    background: var(--mist); border-bottom: 1px solid var(--border);
+  }
+  .harvest-table td { padding: 12px 16px; font-size: 13px; font-weight: 300; line-height: 1.5; border-bottom: 1px solid var(--parchment); vertical-align: top; }
+  .harvest-table tr:last-child td { border-bottom: none; }
+  .harvest-table tr:hover td { background: var(--cream); }
+  .harvest-table td:first-child { font-weight: 500; font-family: 'Cormorant Garamond', serif; font-size: 15px; }
+
+  /* ─── FOOTER ─── */
+  footer {
+    background: var(--night);
+    padding: 2.5rem 2rem;
+    text-align: center;
+  }
+  footer p { font-size: 12px; color: rgba(255,255,255,0.3); font-weight: 300; letter-spacing: 0.04em; }
+  footer strong { color: var(--fern); font-weight: 400; }
+
+  /* ─── DIVIDERS ─── */
+  .hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+  .dark-section .hr { border-color: rgba(255,255,255,0.08); }
+
+  /* ─── ALERTS ─── */
+  .alert {
+    border-radius: 10px; padding: 12px 16px;
+    font-size: 13px; font-weight: 300; line-height: 1.7;
+    border: 1px solid; margin-bottom: 12px;
+  }
+  .alert-warn { background: #fdf0e0; border-color: #e8b060; color: #5a3408; }
+  .alert-info { background: var(--ice); border-color: #80b8e0; color: #0d3060; }
+  .alert-success { background: var(--mist); border-color: #90c070; color: #1e4010; }
+  .alert strong { font-weight: 500; }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .hero-eyebrow { animation: fadeUp 0.6s ease both; }
+  .hero-title { animation: fadeUp 0.7s 0.1s ease both; }
+  .hero-desc { animation: fadeUp 0.7s 0.2s ease both; }
+  .hero-plant-nav { animation: fadeUp 0.7s 0.3s ease both; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 700px) {
+    .plant-hero, .herb-intro { grid-template-columns: 1fr; }
+    .plant-hero-left, .herb-intro-left { position: static; }
+    .hero-content { padding: 0 1.5rem; }
+    .nav-links { display: none; }
+    .herb-mini-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">Plant <span>Care</span></a>
+  <div class="nav-links">
+    <a href="#jasmine">Jasmine</a>
+    <a href="#calamansi">Calamansi</a>
+    <a href="#herbs">Herb Pot</a>
+    <a href="#harvest">Harvest</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <svg class="hero-art" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M200 380 C200 380 150 300 120 240 C90 180 100 120 160 100 C220 80 260 130 240 200 C220 270 200 380 200 380Z" stroke="white" stroke-width="1.5"/>
+    <path d="M200 380 C200 380 250 280 270 220 C290 160 270 100 220 90 C170 80 140 140 170 200 C200 260 200 380 200 380Z" stroke="white" stroke-width="1"/>
+    <path d="M160 100 C120 60 80 80 60 120 C40 160 60 200 100 190" stroke="white" stroke-width="0.8"/>
+    <path d="M240 200 C280 160 320 170 330 210 C340 250 310 280 280 260" stroke="white" stroke-width="0.8"/>
+    <circle cx="200" cy="380" r="4" fill="white" opacity="0.5"/>
+  </svg>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Fort Collins & Denver · Indoor Plant Care</div>
+    <h1 class="hero-title">Grow <em>well,</em><br>tend <em>often.</em></h1>
+    <p class="hero-desc">Care guides for your Jasmine sambac, Calamansi, and cocktail herb pot — tailored to Colorado's altitude, dry air, and intense sun.</p>
+    <div class="hero-plant-nav">
+      <a href="#jasmine" class="hero-pill"><span class="dot" style="background:#7faa6e"></span>Jasmine sambac</a>
+      <a href="#calamansi" class="hero-pill"><span class="dot" style="background:#d4a44c"></span>Calamansi</a>
+      <a href="#herbs" class="hero-pill"><span class="dot" style="background:#9b6eb0"></span>Cocktail Herb Pot</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ JASMINE ═══════════════ -->
+<section id="jasmine" style="background: var(--cream);">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-eyebrow">Indoor · Fort Collins</div>
+      <h2 class="section-title">Jasmine <em>sambac</em></h2>
+    </div>
+
+    <div class="plant-hero">
+      <div class="plant-hero-left">
+        <span class="plant-badge" style="background:var(--mist);color:var(--forest);">🌸 Arabian jasmine</span>
+        <div class="plant-name" style="color:var(--forest);">Jasmine<br>sambac</div>
+        <div class="plant-latin">Jasminum sambac · tropical evergreen</div>
+        <p class="plant-desc">The most fragrant of all jasmines. Blooms repeatedly from late spring through fall with enough light. Your greatest challenge in Fort Collins is humidity — the dry mountain air is the opposite of what this plant wants.</p>
+
+        <div class="stat-row">
+          <div class="stat-item"><span class="stat-key">Pot size</span><span class="stat-val">10" standard (~3–4 gal soil)</span></div>
+          <div class="stat-item"><span class="stat-key">Light</span><span class="stat-val">6–8 hrs bright sun, south or west window</span></div>
+          <div class="stat-item"><span class="stat-key">Water</span><span class="stat-val">When top 1–2" is dry (~every 5–7 days)</span></div>
+          <div class="stat-item"><span class="stat-key">Ideal humidity</span><span class="stat-val">50–70% — run a humidifier</span></div>
+          <div class="stat-item"><span class="stat-key">Temperature</span><span class="stat-val">65–85°F · never below 50°F</span></div>
+          <div class="stat-item"><span class="stat-key">Water type</span><span class="stat-val">Filtered tap — ideal</span></div>
+        </div>
+
+        <div class="fert-highlight">
+          <div class="fert-highlight-top">
+            <div class="fert-highlight-name">Schultz Plant Food Plus</div>
+            <span class="npk-badge">10-15-10</span>
+          </div>
+          <div class="fert-rows">
+            <div class="fert-r"><span class="fk">Dose</span><span class="fv">7 drops per quart filtered water</span></div>
+            <div class="fert-r"><span class="fk">Frequency</span><span class="fv">Every watering, spring–summer</span></div>
+            <div class="fert-r"><span class="fk">Winter</span><span class="fv">Stop or once monthly</span></div>
+            <div class="fert-r"><span class="fk">Flush pot</span><span class="fv">Every 6–8 weeks to clear salts</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-stack">
+        <div class="alert alert-warn"><strong>Fort Collins humidity alert:</strong> Indoor RH drops to 20–30% in winter with forced-air heat. This is your #1 challenge. A small ultrasonic humidifier near the plant is the single highest-ROI purchase you can make.</div>
+
+        <div class="detail-card">
+          <div class="detail-card-header">Watering guide</div>
+          <div class="detail-card-body">
+            <div class="detail-row"><strong>The finger test:</strong> Push finger 1–2" into soil. Water only when dry at that depth — not when the surface looks dry.</div>
+            <div class="detail-row"><strong>Method:</strong> Water deeply with a can or refill a cup 2–3 times until water drains freely from the bottom.</div>
+            <div class="detail-row"><strong>Dry surface ≠ dry roots:</strong> Fort Collins' dry air evaporates the top layer fast. Always check below the surface.</div>
+            <div class="detail-row"><strong>Weight test:</strong> Lift the pot after watering to feel "full" weight. Check again when deciding to water — lighter pot = drier soil.</div>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-card-header">Bloom & pruning</div>
+          <div class="detail-card-body">
+            <div class="detail-row"><strong>Bloom season:</strong> Late spring through fall with adequate light. Flowers emerge on new growth.</div>
+            <div class="detail-row"><strong>Pruning timing:</strong> After a bloom flush — cut back leggy stems to just above a leaf node pair.</div>
+            <div class="detail-row"><strong>Training:</strong> Jasmine sambac wants to climb or trail. Provide a small trellis or let it drape.</div>
+            <div class="detail-row"><strong>Winter grow light:</strong> Add a 6500K LED on a 14-hr timer if blooms drop off Dec–Feb.</div>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-card-header">Watch out for</div>
+          <div class="tag-cloud">
+            <span class="tag tag-red">Spider mites (dry air)</span>
+            <span class="tag tag-red">Aphids on new growth</span>
+            <span class="tag tag-red">Root rot if overwatered</span>
+            <span class="tag tag-red">Bud drop — cold drafts</span>
+            <span class="tag tag-gold">Repot every 2 yrs · spring</span>
+            <span class="tag tag-green">Limp leaves = check moisture first</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ CALAMANSI ═══════════════ -->
+<section id="calamansi" style="background: var(--parchment); border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-eyebrow">Indoor · Fort Collins</div>
+      <h2 class="section-title">Cala<em>mansi</em></h2>
+    </div>
+
+    <div class="plant-hero">
+      <div class="plant-hero-left">
+        <span class="plant-badge" style="background:var(--pale-gold);color:#5a3a00;">🍊 Calamondin citrus</span>
+        <div class="plant-name" style="color:var(--forest);">Cala-<br>mansi</div>
+        <div class="plant-latin">× Citrofortunella microcarpa · dwarf citrus hybrid</div>
+        <p class="plant-desc">One of the most forgiving citrus varieties for indoor growing. Can produce fruit nearly year-round as a houseplant. The sour-orange fruit is excellent for juice, cocktails, and Southeast Asian cooking.</p>
+
+        <div class="stat-row">
+          <div class="stat-item"><span class="stat-key">Pot size</span><span class="stat-val">6" standard (~0.6 gal soil)</span></div>
+          <div class="stat-item"><span class="stat-key">Light</span><span class="stat-val">8–12 hrs bright sun, south window</span></div>
+          <div class="stat-item"><span class="stat-key">Water</span><span class="stat-val">When top 2" is dry (~every 7–10 days)</span></div>
+          <div class="stat-item"><span class="stat-key">Ideal humidity</span><span class="stat-val">40–60% — benefits from humidifier</span></div>
+          <div class="stat-item"><span class="stat-key">Temperature</span><span class="stat-val">60–85°F · never below 50°F</span></div>
+          <div class="stat-item"><span class="stat-key">Water type</span><span class="stat-val">Filtered tap — ideal for citrus</span></div>
+        </div>
+
+        <div class="fert-highlight">
+          <div class="fert-highlight-top">
+            <div class="fert-highlight-name">Down To Earth Citrus Mix</div>
+            <span class="npk-badge">6-3-3</span>
+          </div>
+          <div class="fert-rows">
+            <div class="fert-r"><span class="fk">Dose</span><span class="fv">1 tbsp per application (0.6 gal pot)</span></div>
+            <div class="fert-r"><span class="fk">Frequency</span><span class="fv">Every 6–8 weeks (4–6×/year)</span></div>
+            <div class="fert-r"><span class="fk">Method</span><span class="fv">Scratch into top of soil, water in well</span></div>
+            <div class="fert-r"><span class="fk">Includes</span><span class="fv">Ca, Fe, S, Zn + humic acids</span></div>
+            <div class="fert-r"><span class="fk">Next dose</span><span class="fv">Apply now — late May is perfect timing</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-stack">
+        <div class="alert alert-info"><strong>Filtered water advantage:</strong> Iron and zinc from the 6-3-3 absorb more effectively with filtered water — less mineral competition than Fort Collins tap. Yellowing leaves despite feeding = pH issue, not deficiency.</div>
+
+        <div class="detail-card">
+          <div class="detail-card-header">Fruiting & pollination</div>
+          <div class="detail-card-body">
+            <div class="detail-row"><strong>Year-round fruiting:</strong> Can hold blossoms and ripe fruit simultaneously — this is normal and good.</div>
+            <div class="detail-row"><strong>Indoor pollination:</strong> Self-fertile but needs help indoors. Give flowering branches a gentle shake, or use a soft paintbrush to transfer pollen between flowers.</div>
+            <div class="detail-row"><strong>Harvest timing:</strong> Fruit turns orange-yellow when ripe. Taste-test — sour, bright citrus flavor excellent for juice, cocktails, and Filipino cooking.</div>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-card-header">Pruning & repotting</div>
+          <div class="detail-card-body">
+            <div class="detail-row"><strong>Pruning:</strong> Light shaping in spring — remove crossing or inward-growing branches and any dead wood.</div>
+            <div class="detail-row"><strong>Repotting:</strong> Every 2–3 years. Size up only 2" at a time — citrus performs better slightly root-bound than in an oversized pot.</div>
+            <div class="detail-row"><strong>Grow light:</strong> South window + grow light in winter keeps it fruiting Dec–Feb when light hours are short.</div>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-card-header">Watch out for</div>
+          <div class="tag-cloud">
+            <span class="tag tag-red">Scale insects on stems</span>
+            <span class="tag tag-red">Spider mites (dry air)</span>
+            <span class="tag tag-red">Yellow leaves — Mg/Fe deficiency</span>
+            <span class="tag tag-red">Leaf drop — overwatering</span>
+            <span class="tag tag-green">Most pest-resistant citrus variety</span>
+            <span class="tag tag-gold">Repot every 2–3 yrs</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ HERB POT ═══════════════ -->
+<section id="herbs" style="background: var(--deep);">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-eyebrow" style="color:var(--fern);">Mixed Container · Denver, CO</div>
+      <h2 class="section-title" style="color:var(--mint);">The Cocktail <em style="color:var(--gold);">Herb Pot</em></h2>
+    </div>
+
+    <div class="herb-intro">
+      <div class="herb-intro-left">
+        <div class="pot-visual">
+          <div class="pot-contents">
+            <div class="pot-plant-row"><span class="ppr-dot" style="background:#7faa6e"></span>Dolce Fresca Basil<span class="ppr-role">Filler</span></div>
+            <div class="pot-plant-row"><span class="ppr-dot" style="background:#c05050"></span>Thai Basil<span class="ppr-role">Filler</span></div>
+            <div class="pot-plant-row"><span class="ppr-dot" style="background:#9b6eb0"></span>Shiso (Perilla)<span class="ppr-role">Thriller</span></div>
+            <div class="pot-plant-row"><span class="ppr-dot" style="background:#aed870"></span>Lemon Thyme<span class="ppr-role">Filler</span></div>
+            <div class="pot-plant-row"><span class="ppr-dot" style="background:#5090d0"></span>Blue Star Creeper<span class="ppr-role">Spiller</span></div>
+          </div>
+        </div>
+
+        <div style="margin-top:1.2rem;">
+          <div class="fert-highlight">
+            <div class="fert-highlight-top">
+              <div class="fert-highlight-name">Bonide Liquid Plant Food</div>
+              <span class="npk-badge">10-10-10</span>
+            </div>
+            <div class="fert-rows">
+              <div class="fert-r"><span class="fk">Dilution</span><span class="fv">Half strength — always</span></div>
+              <div class="fert-r"><span class="fk">Frequency</span><span class="fv">Every 2–3 weeks</span></div>
+              <div class="fert-r"><span class="fk">Why half?</span><span class="fv">Preserves essential oil concentration</span></div>
+              <div class="fert-r"><span class="fk">Skip when</span><span class="fv">Any plant is stressed or bolted</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="alert alert-warn" style="margin-bottom:12px;"><strong>Pot-wide watering tension:</strong> Basils and shiso want consistent moisture. Lemon thyme prefers to dry out more. Water to the basil schedule — thyme tolerates it fine with good drainage.</div>
+        <div class="alert alert-warn" style="margin-bottom:12px;"><strong>Denver afternoon storms:</strong> Move the pot under cover if hail is forecast — basil leaves shred easily and hail damage invites disease.</div>
+        <div class="alert alert-info"><strong>Cold nights:</strong> Denver summer nights can drop to 50°F or below. Basil is damaged below 50°F — bring the pot in or cover when cold nights are forecast from September on.</div>
+      </div>
+    </div>
+
+    <!-- Herb cards -->
+    <div class="herb-cards">
+
+      <!-- Dolce Fresca -->
+      <div class="herb-card">
+        <div class="herb-card-header" style="background:linear-gradient(135deg,#1a3a18,#2a5225);">
+          <div class="herb-card-header-left">
+            <span class="herb-emoji">🌿</span>
+            <div>
+              <div class="herb-name" style="color:#c8f0b0;">Dolce Fresca Basil</div>
+              <div class="herb-sub" style="color:rgba(200,240,176,0.6);">Ocimum basilicum · sweet Italian · slow-to-bolt cultivar</div>
+            </div>
+          </div>
+          <span class="herb-role-badge" style="color:#c8f0b0;">Culinary + Cocktail</span>
+        </div>
+        <div class="herb-card-body">
+          <div class="herb-mini-grid">
+            <div class="herb-mini"><div class="hm-label">Water</div><div class="hm-val">Consistent moisture — don't let wilt</div></div>
+            <div class="herb-mini"><div class="hm-label">Sun</div><div class="hm-val">Full sun — loves heat</div></div>
+            <div class="herb-mini"><div class="hm-label">Bolt risk</div><div class="hm-val">Medium — pinch weekly</div></div>
+          </div>
+          <div class="herb-tips">Pinch flower buds the moment they form — cut above a leaf node pair, never remove more than ⅓ at once. A tall center spike with tiny leaves = bolt in progress, remove immediately. Flavor drops fast once it flowers.</div>
+          <div class="herb-use-tags">
+            <span class="tag tag-blue">Gin smash · muddling</span>
+            <span class="tag tag-blue">Basil lemonade</span>
+            <span class="tag tag-green">Italian cooking · caprese</span>
+            <span class="tag tag-gold">Harvest in the morning</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thai Basil -->
+      <div class="herb-card">
+        <div class="herb-card-header" style="background:linear-gradient(135deg,#3a1010,#602020);">
+          <div class="herb-card-header-left">
+            <span class="herb-emoji">🌿</span>
+            <div>
+              <div class="herb-name" style="color:#f8c8c8;">Thai Basil</div>
+              <div class="herb-sub" style="color:rgba(248,200,200,0.6);">Ocimum basilicum var. thyrsiflora · anise-forward · sturdier than sweet</div>
+            </div>
+          </div>
+          <span class="herb-role-badge" style="color:#f8c8c8;">Cocktail + Culinary</span>
+        </div>
+        <div class="herb-card-body">
+          <div class="herb-mini-grid">
+            <div class="herb-mini"><div class="hm-label">Water</div><div class="hm-val">Consistent, slightly more drought-tolerant</div></div>
+            <div class="herb-mini"><div class="hm-label">Sun</div><div class="hm-val">Full sun — handles Denver heat well</div></div>
+            <div class="herb-mini"><div class="hm-label">Bolt risk</div><div class="hm-val">High — watch July closely</div></div>
+          </div>
+          <div class="herb-tips">Purple flower spikes look pretty but devastate flavor — pinch aggressively. Denver summers actually concentrate the anise-clove oils nicely if you keep it from bolting. <strong>Thai basil + shiso muddled together is exceptional in gin cocktails.</strong></div>
+          <div class="herb-use-tags">
+            <span class="tag tag-blue">Muddled gin cocktails</span>
+            <span class="tag tag-blue">Spicy anise smash</span>
+            <span class="tag tag-green">Thai curries · pho · stir fry</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shiso -->
+      <div class="herb-card">
+        <div class="herb-card-header" style="background:linear-gradient(135deg,#2a1040,#4a2070);">
+          <div class="herb-card-header-left">
+            <span class="herb-emoji">🌿</span>
+            <div>
+              <div class="herb-name" style="color:#e0c8f8;">Shiso (Perilla)</div>
+              <div class="herb-sub" style="color:rgba(224,200,248,0.6);">Perilla frutescens · minty-anise-basil profile</div>
+            </div>
+          </div>
+          <span class="herb-role-badge" style="color:#e0c8f8;">Cocktail + Japanese</span>
+        </div>
+        <div class="herb-card-body">
+          <div class="herb-mini-grid">
+            <div class="herb-mini"><div class="hm-label">Water</div><div class="hm-val">Moderate — tolerates brief dryness</div></div>
+            <div class="herb-mini"><div class="hm-label">Sun</div><div class="hm-val">Full sun to part shade</div></div>
+            <div class="herb-mini"><div class="hm-label">Bolt risk</div><div class="hm-val">Very high — day-length sensitive</div></div>
+          </div>
+          <div class="herb-tips"><strong>Denver-specific warning:</strong> Shiso is extremely sensitive to day length. Denver's June/July solstice days (15+ hours) will trigger bolting fast — start pinching flower spikes from late May, earlier than the basils. Red/purple variety makes the most dramatic cocktail garnish.</div>
+          <div class="herb-use-tags">
+            <span class="tag tag-blue">Muddled in shochu/gin</span>
+            <span class="tag tag-blue">Garnish float</span>
+            <span class="tag tag-green">Sushi wrap · Japanese cooking</span>
+            <span class="tag tag-violet">Red variety = dramatic garnish</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lemon Thyme -->
+      <div class="herb-card">
+        <div class="herb-card-header" style="background:linear-gradient(135deg,#253a10,#3d6020);">
+          <div class="herb-card-header-left">
+            <span class="herb-emoji">🌿</span>
+            <div>
+              <div class="herb-name" style="color:#d8f0a8;">Lemon Thyme Variegated</div>
+              <div class="herb-sub" style="color:rgba(216,240,168,0.6);">Thymus citriodorus · cream-edged leaves · lemon-scented</div>
+            </div>
+          </div>
+          <span class="herb-role-badge" style="color:#d8f0a8;">Culinary + Garnish</span>
+        </div>
+        <div class="herb-card-body">
+          <div class="herb-mini-grid">
+            <div class="herb-mini"><div class="hm-label">Water</div><div class="hm-val">Drought tolerant — dries out more</div></div>
+            <div class="herb-mini"><div class="hm-label">Sun</div><div class="hm-val">Full sun — thrives in Denver</div></div>
+            <div class="herb-mini"><div class="hm-label">Bolt risk</div><div class="hm-val">None — flowers are fine</div></div>
+          </div>
+          <div class="herb-tips">The toughest plant in this pot. Water to the basil schedule and thyme will tolerate it fine. The cream-edged variegated margins are more prone to sunscorch than all-green thyme — the afternoon shade that protects blue star creeper also helps here. Excellent infused into simple syrup for cocktails.</div>
+          <div class="herb-use-tags">
+            <span class="tag tag-blue">Lemon thyme gimlet</span>
+            <span class="tag tag-blue">Simple syrup infusion</span>
+            <span class="tag tag-green">Roasted chicken · fish · butter</span>
+            <span class="tag tag-gold">Snip stem tips freely</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Blue Star Creeper -->
+      <div class="herb-card">
+        <div class="herb-card-header" style="background:linear-gradient(135deg,#102040,#1a3a60);">
+          <div class="herb-card-header-left">
+            <span class="herb-emoji">💠</span>
+            <div>
+              <div class="herb-name" style="color:#b8d8f8;">Blue Star Creeper</div>
+              <div class="herb-sub" style="color:rgba(184,216,248,0.6);">Isotoma fluviatilis · ornamental filler/spiller · non-edible</div>
+            </div>
+          </div>
+          <span class="herb-role-badge" style="color:#b8d8f8;">Decorative only</span>
+        </div>
+        <div class="herb-card-body">
+          <div class="herb-mini-grid">
+            <div class="herb-mini"><div class="hm-label">Water</div><div class="hm-val">Moderate-high — don't dry out fully</div></div>
+            <div class="herb-mini"><div class="hm-label">Sun</div><div class="hm-val">Part sun — afternoon shade critical</div></div>
+            <div class="herb-mini"><div class="hm-label">Heat tolerance</div><div class="hm-val">Poor — most sensitive in pot</div></div>
+          </div>
+          <div class="herb-tips"><strong>Expect stress or partial dieback in July/August</strong> when Denver hits 90°F+ — this is normal, don't panic or overwater in response. After a heatwave, trim crisped stems back to healthy green growth and keep consistently moist. It rebounds reliably in late August/September when temperatures ease. Not edible.</div>
+          <div class="herb-use-tags">
+            <span class="tag tag-red">Not edible</span>
+            <span class="tag tag-red">Most vulnerable to Denver heat</span>
+            <span class="tag tag-green">Revives naturally in fall</span>
+            <span class="tag tag-blue">Tiny blue star flowers — decorative</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SHARED TIPS ═══════════════ -->
+<section style="background: var(--forest); border-top: 1px solid rgba(255,255,255,0.06);">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-eyebrow" style="color:var(--fern);">Colorado Growing</div>
+      <h2 class="section-title" style="color:var(--mint);">Denver &amp; Fort Collins <em style="color:var(--gold);">tips</em></h2>
+    </div>
+    <div class="tips-grid">
+      <div class="tip-card">
+        <div class="tip-icon">💧</div>
+        <div class="tip-label">Filtered water</div>
+        <div class="tip-text">Filtered tap is ideal for all your plants. Less mineral buildup, better micronutrient uptake, and you can stretch pot flushes to every 6–8 weeks instead of monthly.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">🌫️</div>
+        <div class="tip-label">Humidity</div>
+        <div class="tip-text">Run a humidifier near jasmine and calamansi in winter. Target 50%+ RH. Grouping both together creates a beneficial microclimate. Pebble trays with water under each pot help too.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">☀️</div>
+        <div class="tip-label">Winter light</div>
+        <div class="tip-text">Colorado gets 300+ sunny days but south windows still underperform Dec–Feb. A basic LED grow light on a 14-hr timer makes a meaningful difference for all three plant setups.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">🏔️</div>
+        <div class="tip-label">Altitude UV</div>
+        <div class="tip-text">At 5,000–5,280 ft, UV intensity is ~25% stronger than sea level. Morning sun is ideal — afternoon shade in July/August protects the most heat-sensitive plants in all three setups.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">🌙</div>
+        <div class="tip-label">Cold nights</div>
+        <div class="tip-text">Denver and Fort Collins summer nights can drop 30–40°F from daytime highs. Basil and jasmine are damaged below 50°F — bring pots in or cover when unexpected cold is forecast.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">⚡</div>
+        <div class="tip-label">Afternoon storms</div>
+        <div class="tip-text">Denver's classic summer pattern: intense morning sun, afternoon thunderstorms. Hail can shred basil leaves in seconds. Move the herb pot under cover when storms with hail are forecast.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ HARVEST TABLE ═══════════════ -->
+<section id="harvest" style="background: var(--cream); border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-eyebrow">Herb pot</div>
+      <h2 class="section-title">Harvest <em>quick-reference</em></h2>
+    </div>
+    <div class="harvest-wrap">
+      <table class="harvest-table">
+        <thead>
+          <tr>
+            <th>Plant</th>
+            <th>When to harvest</th>
+            <th>How much</th>
+            <th>Best cocktail use</th>
+            <th>Best culinary use</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Dolce Fresca Basil</td>
+            <td>Morning, before heat</td>
+            <td>Up to ⅓ at once, above a node</td>
+            <td>Gin smash, basil lemonade, muddling</td>
+            <td>Caprese, fresh pasta, pizza</td>
+          </tr>
+          <tr>
+            <td>Thai Basil</td>
+            <td>Morning; after pinching flowers</td>
+            <td>Up to ⅓ — cut above node pair</td>
+            <td>Muddled with shiso in gin, spicy smash</td>
+            <td>Thai curries, pho, stir fry</td>
+          </tr>
+          <tr>
+            <td>Shiso</td>
+            <td>Any time; young leaves best</td>
+            <td>Outer leaves first; spare the center</td>
+            <td>Muddled in shochu/gin, garnish float</td>
+            <td>Sushi wrapping, Japanese cooking</td>
+          </tr>
+          <tr>
+            <td>Lemon Thyme</td>
+            <td>Any time; just before flowering = peak</td>
+            <td>Snip stem tips freely</td>
+            <td>Lemon thyme gimlet, simple syrup</td>
+            <td>Roasted chicken, fish, compound butter</td>
+          </tr>
+          <tr>
+            <td>Blue Star Creeper</td>
+            <td>—</td>
+            <td>Not edible</td>
+            <td>Decorative only</td>
+            <td>Decorative only</td>
+          </tr>
+          <tr>
+            <td>Calamansi fruit</td>
+            <td>When orange-yellow and fragrant</td>
+            <td>Harvest as ripe — nearly year-round</td>
+            <td>Citrus sour, gin &amp; tonic, margarita</td>
+            <td>Filipino adobo, juice, dipping sauce</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>Plant care guide · <strong>Fort Collins &amp; Denver, Colorado</strong> · Jasmine sambac · Calamansi · Cocktail Herb Pot</p>
+</footer>
+
+</body>
+</html>
