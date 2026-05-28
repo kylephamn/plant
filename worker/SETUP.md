@@ -40,7 +40,7 @@ You should get a push notification on your phone within a few seconds (as long a
 
 ## How it works
 - Cron fires at 7 AM Mountain Time (13:00 and 14:00 UTC to cover MDT/MST)
-- Calls Open-Meteo for Denver weather (free, no API key)
+- Calls Open-Meteo for Highlands Ranch weather (free, no API key)
 - Sends a Web Push notification if:
   - Temp < 55°F (Calamansi safe minimum)
   - Temp < 45°F (Herb pot safe minimum)

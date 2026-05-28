@@ -1,6 +1,6 @@
 // Plant Weather Alert Worker
 // Runs on cron at 7 AM Mountain Time
-// Checks Open-Meteo for Denver weather, pushes alerts if unsafe for outdoor plants
+// Checks Open-Meteo for Highlands Ranch weather, pushes alerts if unsafe for outdoor plants
 
 // Safe outdoor thresholds for your plants
 const OUTDOOR_PLANTS = [
@@ -8,9 +8,9 @@ const OUTDOOR_PLANTS = [
   { id: "herb-pot",   name: "Cocktail Herb Pot",   emoji: "🌿", minTempF: 45 },
 ];
 
-// Denver coordinates (outdoor tracker plants are in Denver)
-const LAT = 39.7392;
-const LON = -104.9903;
+// Highlands Ranch coordinates (outdoor tracker plants are in Highlands Ranch)
+const LAT = 39.5594;
+const LON = -104.9719;
 
 export default {
   // Handle cron triggers
@@ -63,10 +63,14 @@ export default {
       }
     }
 
+    // Extract and validate sync token
+    const rawToken = url.searchParams.get('t') || 'default';
+    const safeToken = /^[a-z0-9-]{6,32}$/.test(rawToken) ? rawToken : 'default';
+
     // GET /watering — return all plant watering timestamps
     if (request.method === "GET" && url.pathname === "/watering") {
       try {
-        const val = await env.PUSH_SUBS.get("watering:state");
+        const val = await env.PUSH_SUBS.get(`${safeToken}:watering:state`);
         const state = val ? JSON.parse(val) : {};
         return new Response(JSON.stringify(state), {
           status: 200,
@@ -84,10 +88,10 @@ export default {
         if (!id || typeof ts !== "number") {
           return new Response("Invalid body", { status: 400, headers: cors });
         }
-        const val = await env.PUSH_SUBS.get("watering:state");
+        const val = await env.PUSH_SUBS.get(`${safeToken}:watering:state`);
         const state = val ? JSON.parse(val) : {};
         state[id] = ts;
-        await env.PUSH_SUBS.put("watering:state", JSON.stringify(state));
+        await env.PUSH_SUBS.put(`${safeToken}:watering:state`, JSON.stringify(state));
         return new Response("OK", { status: 200, headers: cors });
       } catch (e) {
         return new Response("Error: " + e.message, { status: 500, headers: cors });
@@ -97,7 +101,21 @@ export default {
     // POST /watering/reset — clear all watering history
     if (request.method === "POST" && url.pathname === "/watering/reset") {
       try {
-        await env.PUSH_SUBS.put("watering:state", JSON.stringify({}));
+        await env.PUSH_SUBS.put(`${safeToken}:watering:state`, JSON.stringify({}));
+        return new Response("OK", { status: 200, headers: cors });
+      } catch (e) {
+        return new Response("Error: " + e.message, { status: 500, headers: cors });
+      }
+    }
+
+    // POST /migrate — one-time migration of old unprefixed watering:state to token namespace
+    if (request.method === "POST" && url.pathname === "/migrate") {
+      try {
+        const old = await env.PUSH_SUBS.get('watering:state');
+        if (old) {
+          await env.PUSH_SUBS.put(`${safeToken}:watering:state`, old);
+          await env.PUSH_SUBS.delete('watering:state');
+        }
         return new Response("OK", { status: 200, headers: cors });
       } catch (e) {
         return new Response("Error: " + e.message, { status: 500, headers: cors });
