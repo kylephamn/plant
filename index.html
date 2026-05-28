@@ -465,6 +465,7 @@
     <a href="#calamansi">Calamansi</a>
     <a href="#herbs">Herb Pot</a>
     <a href="#tracker">Tracker</a>
+    <a href="#outdoor-tracker">Outside</a>
     <a href="#harvest">Harvest</a>
   </div>
   <button class="nav-hamburger" aria-label="Open menu" aria-expanded="false" onclick="toggleNav(this)">
@@ -476,6 +477,7 @@
   <a href="#calamansi" onclick="closeNav()">Calamansi</a>
   <a href="#herbs" onclick="closeNav()">Herb Pot</a>
   <a href="#tracker" onclick="closeNav()">Tracker</a>
+  <a href="#outdoor-tracker" onclick="closeNav()">Outside</a>
   <a href="#harvest" onclick="closeNav()">Harvest</a>
 </div>
 <script>
@@ -13320,6 +13322,10 @@ JL6rfInNFJCy8Ng548uTnH6UAf/Z" alt="Herb pot" style="width:100%;display:block;obj
   </div>
 </section>
 
+<script>
+const WORKER_URL = "https://plant-weather-alerts.deathrhino150.workers.dev";
+</script>
+
 <!-- ═══════════════ WATERING TRACKER ═══════════════ -->
 <section id="tracker" style="background: var(--night); border-top: 1px solid rgba(255,255,255,0.06);">
   <div class="section-inner">
@@ -13369,11 +13375,30 @@ const PLANTS = [
   }
 ];
 
-function getState() {
+async function getState() {
+  try {
+    const res = await fetch(`${WORKER_URL}/watering`);
+    if (res.ok) return await res.json();
+  } catch(e) {}
+  // Fallback to localStorage if worker unreachable
   try { return JSON.parse(localStorage.getItem("watering_tracker") || "{}"); } catch(e) { return {}; }
 }
-function saveState(state) {
-  try { localStorage.setItem("watering_tracker", JSON.stringify(state)); } catch(e) {}
+
+async function saveWatered(id, ts) {
+  try {
+    await fetch(`${WORKER_URL}/watering`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ts }),
+    });
+  } catch(e) {
+    // Fallback to localStorage
+    try {
+      const state = JSON.parse(localStorage.getItem("watering_tracker") || "{}");
+      state[id] = ts;
+      localStorage.setItem("watering_tracker", JSON.stringify(state));
+    } catch(e2) {}
+  }
 }
 
 function daysBetween(ts) {
@@ -13399,8 +13424,8 @@ function timeAgo(ts) {
   return `Watered ${days} days ago`;
 }
 
-function renderTracker() {
-  const state = getState();
+async function renderTracker() {
+  const state = await getState();
   const grid = document.getElementById("tracker-grid");
   if (!grid) return;
   grid.innerHTML = "";
@@ -13440,16 +13465,18 @@ function renderTracker() {
   });
 }
 
-function markWatered(id) {
-  const state = getState();
-  state[id] = Date.now();
-  saveState(state);
+async function markWatered(id) {
+  await saveWatered(id, Date.now());
   renderTracker();
 }
 
-function resetAll() {
+async function resetAll() {
   if (confirm("Reset all watering history?")) {
-    saveState({});
+    try {
+      await fetch(`${WORKER_URL}/watering/reset`, { method: "POST" });
+    } catch(e) {
+      try { localStorage.removeItem("watering_tracker"); } catch(e2) {}
+    }
     renderTracker();
   }
 }
@@ -13458,6 +13485,23 @@ function resetAll() {
 renderTracker();
 setInterval(renderTracker, 3600000);
 </script>
+
+<!-- ═══════════════ OUTDOOR TRACKER ═══════════════ -->
+<section id="outdoor-tracker" style="background: var(--deep); border-top: 1px solid rgba(255,255,255,0.06);">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-eyebrow" style="color:var(--fern);">Sun time</div>
+      <h2 class="section-title" style="color:var(--mint);">Outside <em style="color:var(--gold);">Tracker</em></h2>
+    </div>
+
+    <div id="outdoor-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;"></div>
+
+    <div style="margin-top:1.5rem;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+      <button onclick="resetOutdoor()" style="padding:8px 20px;border-radius:999px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.5);font-size:12px;font-family:'Jost',sans-serif;cursor:pointer;letter-spacing:0.06em;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.4)';this.style.color='rgba(255,255,255,0.8)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='rgba(255,255,255,0.5)'">Reset all</button>
+      <span style="font-size:12px;color:rgba(255,255,255,0.25);font-weight:300;">Calamansi &amp; herb pot love morning sun outside</span>
+    </div>
+  </div>
+</section>
 
 <!-- ═══════════════ HARVEST TABLE ═══════════════ -->
 <section id="harvest" style="background: var(--cream); border-top: 1px solid var(--border);">
@@ -13544,6 +13588,37 @@ if ('serviceWorker' in navigator) {
 
 // ─── NOTIFICATION PERMISSION + SCHEDULING ───
 const NOTIFY_HOUR = 8; // 8 AM daily check
+const VAPID_PUBLIC_KEY = "BMOLBUndm290cPZNaP0gngcnjJTSxDmWePMz3ZjRcIrmJ5_s89JX9ThXv4m3zWwLa_sLedKCXxUBUtUSA_oPPdg";
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+}
+
+async function subscribeToWebPush() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
+    }
+    await fetch(`${WORKER_URL}/subscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(sub.toJSON()),
+    });
+    return true;
+  } catch (e) {
+    console.warn('Push subscription failed:', e);
+    return false;
+  }
+}
 
 function requestNotificationPermission() {
   if (!('Notification' in window)) return;
@@ -13666,11 +13741,12 @@ function renderNotifButton() {
     return;
   }
   if (Notification.permission === 'granted') {
-    container.innerHTML = '<span style="font-size:12px;color:#7faa6e;">✓ Notifications enabled</span>';
+    container.innerHTML = '<span style="font-size:12px;color:#7faa6e;">✓ Notifications enabled — weather alerts active</span>';
+    subscribeToWebPush();
   } else if (Notification.permission === 'denied') {
     container.innerHTML = '<span style="font-size:12px;color:#e88a6a;">Notifications blocked — enable in Settings → Safari → [your site]</span>';
   } else {
-    container.innerHTML = `<button onclick="Notification.requestPermission().then(()=>renderNotifButton())" style="padding:8px 20px;border-radius:999px;border:1px solid #7faa6e;background:transparent;color:#7faa6e;font-size:12px;font-family:'Jost',sans-serif;cursor:pointer;letter-spacing:0.06em;">🔔 Enable notifications</button>`;
+    container.innerHTML = `<button onclick="Notification.requestPermission().then(p=>{if(p==='granted')subscribeToWebPush();renderNotifButton();})" style="padding:8px 20px;border-radius:999px;border:1px solid #7faa6e;background:transparent;color:#7faa6e;font-size:12px;font-family:'Jost',sans-serif;cursor:pointer;letter-spacing:0.06em;">🔔 Enable notifications</button>`;
   }
 }
 
@@ -13687,6 +13763,177 @@ window.renderTracker = function() {
   _origRenderTracker();
   renderNotificationBanner();
 };
+
+// ─── OUTDOOR TRACKER ───
+const OUTDOOR_PLANTS = [
+  {
+    id: "calamansi",
+    name: "Calamansi",
+    emoji: "🍊",
+    intervalDays: 1,
+    minTempF: 55,
+    note: "Daily outdoor sun — morning light ideal, bring in before afternoon storms or if below 55°F",
+    color: "#d4a44c"
+  },
+  {
+    id: "herb-pot",
+    name: "Cocktail Herb Pot",
+    emoji: "🌿",
+    intervalDays: 1,
+    minTempF: 45,
+    note: "Loves daily outdoor time — morning sun ideal, shelter from hail and strong afternoon wind",
+    color: "#a8d870"
+  }
+];
+
+function getOutdoorState() {
+  try { return JSON.parse(localStorage.getItem("outdoor_tracker") || "{}"); } catch(e) { return {}; }
+}
+function saveOutdoorState(state) {
+  try { localStorage.setItem("outdoor_tracker", JSON.stringify(state)); } catch(e) {}
+}
+
+function markOutside(id) {
+  const state = getOutdoorState();
+  state[id] = Date.now();
+  saveOutdoorState(state);
+  renderOutdoorTracker();
+  renderOutdoorBanner();
+}
+
+function resetOutdoor() {
+  if (confirm("Reset all outdoor history?")) {
+    saveOutdoorState({});
+    renderOutdoorTracker();
+    renderOutdoorBanner();
+  }
+}
+
+function renderOutdoorTracker() {
+  const state = getOutdoorState();
+  const grid = document.getElementById("outdoor-grid");
+  if (!grid) return;
+  grid.innerHTML = "";
+
+  OUTDOOR_PLANTS.forEach(plant => {
+    const last = state[plant.id] || null;
+    const days = last ? Math.floor((Date.now() - last) / 86400000) : null;
+
+    let statusLabel, statusColor, urgency;
+    if (days === null) {
+      statusLabel = "Not yet tracked"; statusColor = "rgba(255,255,255,0.3)"; urgency = 0;
+    } else {
+      const due = plant.intervalDays - days;
+      if (due < 0) { statusLabel = `Overdue by ${Math.abs(due)} day${Math.abs(due)===1?'':"s"}`; statusColor = "#e88a6a"; urgency = 3; }
+      else if (due === 0) { statusLabel = "Due outside today"; statusColor = "#f0c060"; urgency = 2; }
+      else if (due === 1) { statusLabel = "Due outside tomorrow"; statusColor = "#d4c060"; urgency = 1; }
+      else { statusLabel = `Next in ${due} days`; statusColor = "#7faa6e"; urgency = 0; }
+    }
+
+    let ago;
+    if (!last) ago = "Never tracked";
+    else if (days === 0) ago = "Outside today";
+    else if (days === 1) ago = "Outside yesterday";
+    else ago = `${days} days ago`;
+
+    const ring = urgency >= 2 ? `box-shadow: 0 0 0 2px ${statusColor}44, 0 0 0 4px ${statusColor}22;` : "";
+
+    const card = document.createElement("div");
+    card.style.cssText = `background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.10);border-radius:14px;padding:18px 20px;transition:all 0.2s;cursor:default;${ring}`;
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:20px;">${plant.emoji}</span>
+          <div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:16px;color:#fff;line-height:1.1;">${plant.name}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.06em;margin-top:1px;">Denver · Outdoor sun</div>
+          </div>
+        </div>
+        <div style="width:10px;height:10px;border-radius:50%;background:${statusColor};flex-shrink:0;margin-top:2px;"></div>
+      </div>
+      <div style="font-size:13px;font-weight:500;color:${statusColor};margin-bottom:4px;">${statusLabel}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.4);font-weight:300;margin-bottom:12px;">${ago}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.3);font-weight:300;line-height:1.5;margin-bottom:14px;font-style:italic;">${plant.note}</div>
+      <button onclick="markOutside('${plant.id}')" style="width:100%;padding:9px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.8);font-size:12px;font-family:'Jost',sans-serif;font-weight:500;cursor:pointer;letter-spacing:0.05em;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.13)'" onmouseout="this.style.background='rgba(255,255,255,0.07)'">
+        ☀️ Mark as outside today
+      </button>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function renderOutdoorBanner() {
+  const existing = document.getElementById('outdoor-banner');
+  if (existing) existing.remove();
+
+  const state = getOutdoorState();
+  const overdue = OUTDOOR_PLANTS.filter(plant => {
+    const last = state[plant.id] || null;
+    if (!last) return false;
+    const days = Math.floor((Date.now() - last) / 86400000);
+    return days >= plant.intervalDays;
+  });
+
+  if (overdue.length === 0) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'outdoor-banner';
+  banner.style.cssText = `
+    position: fixed; bottom: 24px; right: 24px;
+    z-index: 998; background: #0a1a08; border: 1px solid #a8d060;
+    border-radius: 14px; padding: 14px 20px; max-width: 360px; width: calc(100% - 48px);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 8px;
+    animation: slideUp 0.3s ease;
+  `;
+
+  const items = overdue.map(plant =>
+    `<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,0.85);">
+      <span>${plant.emoji}</span>
+      <span style="font-weight:500;">${plant.name}</span>
+      <span style="color:#c8e060;font-size:12px;margin-left:auto;">time outside</span>
+    </div>`
+  ).join('');
+
+  banner.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <span style="font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#c8e060;">☀️ Outside Reminder</span>
+      <button onclick="document.getElementById('outdoor-banner').remove()" style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:16px;padding:0;line-height:1;">×</button>
+    </div>
+    ${items}
+    <button onclick="document.getElementById('outdoor-tracker').scrollIntoView({behavior:'smooth'});document.getElementById('outdoor-banner').remove();"
+      style="margin-top:4px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.8);font-size:12px;font-family:'Jost',sans-serif;cursor:pointer;letter-spacing:0.05em;">
+      Go to tracker →
+    </button>
+  `;
+  document.body.appendChild(banner);
+}
+
+function scheduleOutdoorNotifications() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (!('serviceWorker' in navigator)) return;
+
+  const state = getOutdoorState();
+  OUTDOOR_PLANTS.forEach(plant => {
+    const last = state[plant.id] || null;
+    if (!last) return;
+    const days = Math.floor((Date.now() - last) / 86400000);
+    if (days >= plant.intervalDays) {
+      showNotification(
+        `☀️ ${plant.name} needs outside time!`,
+        days > plant.intervalDays
+          ? `${days - plant.intervalDays} day${days - plant.intervalDays === 1 ? '' : 's'} overdue — put it outside this morning if weather allows.`
+          : `Due today — good morning sun will help it thrive.`
+      );
+    }
+  });
+}
+
+// Hook outdoor render into page load
+window.addEventListener('load', () => {
+  renderOutdoorTracker();
+  renderOutdoorBanner();
+  scheduleOutdoorNotifications();
+});
 </script>
 
 </body>

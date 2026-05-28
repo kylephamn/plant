@@ -25,17 +25,38 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Notification click: open the site and go to tracker
+// Web Push from Cloudflare Worker weather alerts
+self.addEventListener('push', event => {
+  if (!event.data) return;
+  let data;
+  try { data = event.data.json(); } catch { data = { title: '🌿 Plant Alert', body: event.data.text(), url: '/' }; }
+  event.waitUntil(
+    self.registration.showNotification(data.title || '🌿 Plant Alert', {
+      body: data.body || '',
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      tag: data.tag || 'weather-alert',
+      renotify: true,
+      requireInteraction: true,
+      vibrate: [300, 100, 300, 100, 300],
+      data: { url: data.url || '/#outdoor-tracker' },
+    })
+  );
+});
+
+// Notification click: open the site
 self.addEventListener('notificationclick', event => {
   event.notification.close();
+  const target = (event.notification.data && event.notification.data.url) || '/#tracker';
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
       for (const client of list) {
         if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.navigate(target);
           return client.focus();
         }
       }
-      return clients.openWindow('/#tracker');
+      return clients.openWindow(target);
     })
   );
 });
